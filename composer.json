@@ -1,0 +1,39 @@
+{
+  "name"        : "laravel/laravel",
+  "description" : "The Laravel Framework.",
+  "keywords"    : ["framework", "laravel"],
+  "license"     : "MIT",
+  "require"     : {
+    "laravel/framework" : "4.1.*",
+    "cboden/Ratchet"    : "0.3.*"
+  },
+  "autoload" : {
+    "classmap" : [
+      "app/commands",
+      "app/controllers",
+      "app/models",
+      "app/database/migrations",
+      "app/database/seeds",
+      "app/tests/TestCase.php"
+    ],
+    "psr-0" : {
+      "Formativ\\Embedded" : "workbench/formativ/embedded/src/"
+    }
+  },
+  "scripts" : {
+    "post-install-cmd" : [
+      "php54 artisan optimize"
+    ],
+    "post-update-cmd" : [
+      "php54 artisan clear-compiled",
+      "php54 artisan optimize"
+    ],
+    "post-create-project-cmd" : [
+      "php54 artisan key:generate"
+    ]
+  },
+  "config" : {
+    "preferred-install" : "dist"
+  },
+  "minimum-stability" : "dev"
+}
