@@ -2,7 +2,8 @@
 
 namespace Formativ\Embedded\Command;
 
-use Cache;
+use React;
+
 use Formativ\Embedded\SocketInterface;
 use Illuminate\Console\Command;
 use Ratchet\ConnectionInterface;
@@ -19,36 +20,35 @@ extends Command
 
   protected $description = "Creates a firmata socket server.";
 
+  protected $device;
+
   public function __construct(SocketInterface $socket)
   {
     parent::__construct();
 
     $this->socket = $socket;
 
-    $this->socket->getEmitter()->on("message", function($message) {
+    $socket->getEmitter()->on("message", function($message)
+    { 
+      fwrite($this->device, $message);
 
-      $this->info("to proxy: " . $message . ".");
+      $data = trim(stream_get_contents($this->device));
+      $this->info($data);
 
-      $toProxy = Cache::get("to-proxy");
-
-      if (!is_array($toProxy))
-      {
-        $toProxy = [];
-      }
-
-      $toProxy[] = $message;
-
-      Cache::put("to-proxy", json_encode($toProxy), 999);
-
+      $this->socket->send($data);
     });
 
-    $this->socket->getEmitter()->on("error", function($exception) {
-      $this->line("exception: " . $exception->getMessage() . ".");
+    $socket->getEmitter()->on("error", function($e)
+    {
+      $this->line("exception: " . $e->getMessage() . ".");
     });
   }
 
   public function fire()
   {
+    $this->device = fopen($this->argument("device"), "r+");
+    stream_set_blocking($this->device, 0);
+
     $port = (integer) $this->option("port");
 
     $server = IoServer::factory(
@@ -60,38 +60,36 @@ extends Command
       $port
     );
 
-    $tick = function() use (&$server, &$tick) {
-
-      $fromProxy = json_decode(Cache::get("from-proxy", "null"));
-
-      if (!is_array($fromProxy))
-      {
-        $fromProxy = [];
-      }
-      
-      foreach ($fromProxy as $message)
-      {
-        $this->info("from proxy: " . $message . ".");
-
-        $this->socket->send($message);
-      }
-
-      Cache::put("from-proxy", json_encode([]), 999);
-
-      $server->loop->addTimer(250 / 1000, $tick);
-
-    };
-
-    $server->loop->addTimer(250 / 1000, $tick);
-
     $this->info("Listening on port " . $port . ".");
     $server->run();
+  }
+
+  protected function getArguments()
+  {
+    return [
+      [
+        "device",
+        InputArgument::REQUIRED,
+        "Device to use."
+      ]
+    ];
   }
 
   protected function getOptions()
   {
     return [
-      ["port", null, InputOption::VALUE_REQUIRED, "Port to listen on.", 8081]
+      [
+        "port",
+        null,
+        InputOption::VALUE_REQUIRED,
+        "Port to listen on.",
+        8081
+      ]
     ];
+  }
+
+  public function __destruct()
+  {
+    fclose($this->handle);
   }
 }
