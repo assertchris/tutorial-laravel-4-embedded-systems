@@ -12,10 +12,10 @@
       <div class="row">
         <div class="col-md-12">
           <h1>Laravel 4 Embedded Systems</h1>
-          <input type="number" max="255" min="0" step="5" name="led" />
-          <input type="number" max="255" min="0" readonly name="sensor" />
-          <input type="number" max="180" min="0" step="10" name="x" />
-          <input type="number" max="180" min="0" step="10" name="y" />
+          <input type="number" max="255" min="0" name="led" />
+          <input type="number" min="0" name="sensor" />
+          <input type="number" max="180" min="0" name="x" />
+          <input type="number" max="180" min="0" name="y" />
           <img name="photo" />
         </div>
       </div>
