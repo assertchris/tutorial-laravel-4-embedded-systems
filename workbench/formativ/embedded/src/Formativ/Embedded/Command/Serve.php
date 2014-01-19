@@ -90,6 +90,8 @@ extends Command
 
   public function __destruct()
   {
-    fclose($this->handle);
+    if (is_resource($this->device)) {
+      fclose($this->device); 
+    }
   }
 }
