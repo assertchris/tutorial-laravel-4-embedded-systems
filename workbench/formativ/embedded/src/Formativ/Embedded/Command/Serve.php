@@ -21,36 +21,36 @@ extends Command
   protected $description = "Creates a firmata socket server.";
 
   protected $device;
-
+  
   public function __construct(SocketInterface $socket)
   {
     parent::__construct();
-
+    
     $this->socket = $socket;
-
+    
     $socket->getEmitter()->on("message", function($message)
     { 
       fwrite($this->device, $message);
-
+    
       $data = trim(stream_get_contents($this->device));
       $this->info($data);
-
+    
       $this->socket->send($data);
     });
-
+    
     $socket->getEmitter()->on("error", function($e)
     {
       $this->line("exception: " . $e->getMessage() . ".");
     });
   }
-
+    
   public function fire()
   {
     $this->device = fopen($this->argument("device"), "r+");
     stream_set_blocking($this->device, 0);
-
+    
     $port = (integer) $this->option("port");
-
+    
     $server = IoServer::factory(
       new HttpServer(
         new WsServer(
@@ -59,11 +59,11 @@ extends Command
       ),
       $port
     );
-
+    
     $this->info("Listening on port " . $port . ".");
     $server->run();
   }
-
+    
   protected function getArguments()
   {
     return [
@@ -73,6 +73,13 @@ extends Command
         "Device to use."
       ]
     ];
+  }
+    
+  public function __destruct()
+  {
+    if (is_resource($this->device)) {
+      fclose($this->device); 
+    }
   }
 
   protected function getOptions()
@@ -86,12 +93,5 @@ extends Command
         8081
       ]
     ];
-  }
-
-  public function __destruct()
-  {
-    if (is_resource($this->device)) {
-      fclose($this->device); 
-    }
   }
 }

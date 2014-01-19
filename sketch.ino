@@ -1,21 +1,21 @@
 #include <Servo.h>
-
+  
 String buffer = "";
 String parts[3];
 Servo servos[13];
 int index = 0;
-
+  
 void setup()
 {
   Serial.begin(9600);
   buffer.reserve(200);
 }
-
+  
 void loop()
 {
-  
+   
 }
-
+  
 void handle()
 { 
   int pin = parts[1].toInt();
@@ -63,7 +63,7 @@ void handle()
   
   Serial.print(parts[0] + "," + parts[1] + "," + value + ".\n");
 }
-
+   
 void serialEvent()
 {
   while (Serial.available())
@@ -95,5 +95,3 @@ void serialEvent()
     }
   }
 }
-
-
